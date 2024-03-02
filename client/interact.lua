@@ -44,7 +44,7 @@ for i=1, #properties do
         lib.requestModel(locker.model)
         local coords = locker.coords
         local prop = CreateObject(locker.model, coords.x, coords.y, coords.z, false, false, false)
-        self.prop = prop
+        self.propertyLockerProp = prop
 
         if not locker.noGroundSnap then
             PlaceObjectOnGroundProperly_2(prop)
@@ -56,7 +56,7 @@ for i=1, #properties do
     end
 
     function point:onExit()
-        local prop = self.prop
+        local prop = self.propertyLockerProp
         if not prop or not DoesEntityExist(prop) then return end
         DeleteEntity(prop)
         target:removeLocalEntity(prop, {"ND_Property:wardrobe", "ND_Property:stash"})
@@ -64,6 +64,19 @@ for i=1, #properties do
 
     ::skip::
 end
+
+AddEventHandler("onResourceStop", function(resourceName)
+    if resourceName ~= cache.resource then return end
+
+    local points = lib.points.getAllPoints()
+
+    for i=1, #points do
+        local point = points[i]
+        if point.propertyLockerProp and DoesEntityExist(point.propertyLockerProp) then
+            DeleteEntity(point.propertyLockerProp)
+        end
+    end
+end)
 
 -- RegisterCommand("prop", function(source, args, rawCommand)
 --     local coords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 1.0, 0.0)
