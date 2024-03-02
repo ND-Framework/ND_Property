@@ -65,11 +65,11 @@ for i=1, #properties do
     ::skip::
 end
 
-RegisterCommand("prop", function(source, args, rawCommand)
-    local coords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 1.0, 0.0)
-    lib.requestModel(`p_cs_locker_01_s`)
-    local prop = CreateObject(`p_cs_locker_01_s`, coords.x, coords.y, coords.z, false, false, false)
-    SetEntityHeading(prop, coords.w)
-    PlaceObjectOnGroundProperly_2(prop)
-    SetModelAsNoLongerNeeded(`p_cs_locker_01_s`)
-end, false)
+-- RegisterCommand("prop", function(source, args, rawCommand)
+--     local coords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 1.0, 0.0)
+--     lib.requestModel(`p_cs_locker_01_s`)
+--     local prop = CreateObject(`p_cs_locker_01_s`, coords.x, coords.y, coords.z, false, false, false)
+--     SetEntityHeading(prop, coords.w)
+--     PlaceObjectOnGroundProperly_2(prop)
+--     SetModelAsNoLongerNeeded(`p_cs_locker_01_s`)
+-- end, false)
