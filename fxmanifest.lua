@@ -15,6 +15,7 @@ files {
 dependencies {
     "ox_lib",
     "ox_doorlock",
+    "ox_inventory",
     "ND_Core"
 }
 
