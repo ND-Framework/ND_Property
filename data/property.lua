@@ -1,5 +1,17 @@
 return {
     {
+        id = "flywheels",
+        label = "277 Panorama Dr",
+        coords = vec3(1766.29, 3318.90, 40.55),
+        locker = { model = `p_cs_locker_01_s`, coords = vec4(1766.298, 3318.907, 40.559, 29.784) }
+    },
+    {
+        id = "bahamamamas",
+        label = "677 Marathon Ave",
+        coords = vec3(-1390.02, -632.46, 29.95),
+        locker = { model = `p_cs_locker_01_s`, coords = vec4(-1390.024, -632.461, 29.956, 122.394) }
+    },
+    {
         id = "mainlsc",
         label = "627 Carcer Way",
         coords = vec3(-344.94, -126.66, 38.12),
