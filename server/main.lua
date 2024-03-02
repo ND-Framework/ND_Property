@@ -1,5 +1,6 @@
 local properties = lib.load("data.property")
 local inventory = exports.ox_inventory
+local doorList = {}
 
 local function getPropertyById(propertyId)
     for i=1, #properties do
@@ -35,9 +36,15 @@ SetTimeout(500, function()
             ::skip::
         end
     end)
+
+    MySQL.query("SELECT `id`, `name` FROM `ox_doorlock`", {}, function(result)
+        if not result then return end
+        doorList = result
+    end)
 end)
 
-local function updateProperty(propertyId, groups, resetGroupsTime)
+-- update or insert property info to db.
+local function updatePropertyDatabase(propertyId, groups, resetGroupsTime)
     local property_id = MySQL.scalar.await("SELECT `property_id` FROM `nd_property` WHERE `property_id` = ? LIMIT 1", {propertyId})
 
     if property_id then
@@ -51,6 +58,35 @@ local function updateProperty(propertyId, groups, resetGroupsTime)
     })
 end
 
+-- register stash for inventory, if stash already exists it will be updated.
+local function updateStash(property)
+    local lockerCoords = property.locker?.coords?.xyz
+    if not lockerCoords then return end
+
+    inventory:RegisterStash(
+        "property_" .. property.id,
+        property.label,
+        50, -- slots.
+        100000, -- max weight.
+        nil, -- nil makes shared, true makes unique.
+        nil, -- anyone allowed.
+        lockerCoords
+    )
+end
+
+-- update property data, will also update db.
+local function updateProperty(propertyId, groups, resetGroupsTime)
+    local property = getPropertyById(propertyId)
+    if not property then return end
+
+    property.groups = groups
+    property.resetGroupsTime = resetGroupsTime
+    updatePropertyDatabase(propertyId, groups, resetGroupsTime)
+
+    updateStash(property)
+end
+
+-- check stash permission by property groups when opening.
 inventory:registerHook("openInventory", function(payload)
     if payload.inventoryType ~= "stash" or not payload.inventoryId:find("property_") then return end
 
@@ -67,77 +103,27 @@ inventory:registerHook("openInventory", function(payload)
     return false
 end)
 
-RegisterNetEvent("ND_Property:registerStash", function(propertyId)
-    local property = getPropertyById(propertyId)
-    if not property or not property.locker then return end
-
-    local lockerCoords = property.locker?.coords?.xyz
-    if not lockerCoords then return end
-
-    inventory:RegisterStash(
-        "property_" .. property.id,
-        property.label,
-        50, -- slots.
-        100000, -- max weight.
-        nil, -- nil makes shared, true makes unique.
-        nil, -- anyone allowed.
-        lockerCoords
-    )
-end)
-
+-- admin can get all property data from server for the property management tool.
 lib.callback.register("ND_Property:getProperties", function(src)
     local player = NDCore.getPlayer(src)
     if not player or not player.groups["admin"] then return end
-    
     return properties
 end)
 
+-- update property trough the property management admin tool.
 RegisterNetEvent("ND_Property:updatePropertySettings", function(propertyId, groups, resetGroupsTime)
     local src = source
     local player = NDCore.getPlayer(src)
     if not player or not player.groups["admin"] then return end
-
-    local property = getPropertyById(propertyId)
-    if not property then return end
-
-    property.groups = groups
-    property.resetGroupsTime = resetGroupsTime and math.floor(resetGroupsTime / 1000) or nil
-    updateProperty(propertyId, groups, property.resetGroupsTime)
-
-    local lockerCoords = property.locker?.coords?.xyz
-    if not lockerCoords then return end
-
-    inventory:RegisterStash(
-        "property_" .. property.id,
-        property.label,
-        50, -- slots.
-        100000, -- max weight.
-        nil, -- nil makes shared, true makes unique.
-        nil, -- anyone allowed.
-        lockerCoords
-    )
+    updateProperty(propertyId, groups, resetGroupsTime and math.floor(resetGroupsTime / 1000) or nil)
 end)
 
-exports("givePropertyAccess", function(propertyId, groups, resetGroupsTime)
+-- register a stash if there isn't one for that property (first time open).
+RegisterNetEvent("ND_Property:registerStash", function(propertyId)
     local property = getPropertyById(propertyId)
-    if not property then return end
-
-    property.groups = groups
-    property.resetGroupsTime = resetGroupsTime
-    updateProperty(propertyId, groups, resetGroupsTime)
-
-    local lockerCoords = property.locker?.coords?.xyz
-    if not lockerCoords then return end
-
-    inventory:RegisterStash(
-        "property_" .. property.id,
-        property.label,
-        50, -- slots.
-        100000, -- max weight.
-        nil, -- nil makes shared, true makes unique.
-        nil, -- anyone allowed.
-        lockerCoords
-    )
+    if not property or not property.locker then return end
+    updateStash(property)
 end)
 
+exports("updateProperty", updateProperty)
 exports("getPropertyById", getPropertyById)
