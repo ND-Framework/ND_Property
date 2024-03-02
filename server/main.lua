@@ -25,6 +25,12 @@ SetTimeout(500, function()
     
             property.groups = json.decode(item.property_groups)
             property.resetGroupsTime = item.reset_groups_time
+
+            -- if it's been more than one day in seconds, remove group access.
+            if property.resetGroupsTime and os.time()-property.resetGroupsTime > 86400 then
+                property.groups = nil
+                property.resetGroupsTime = nil
+            end
             
             ::skip::
         end
@@ -45,26 +51,20 @@ local function updateProperty(propertyId, groups, resetGroupsTime)
     })
 end
 
-local function reorderGroups(groups)
-    if not groups then
-        return { ["groups_empty"] = 0 }
-    end
-    
-    local newGroups = {}
-    for i=1, #groups do
-        newGroups[groups[i]] = 0
-    end
-    return newGroups
-end
-
 inventory:registerHook("openInventory", function(payload)
     if payload.inventoryType ~= "stash" or not payload.inventoryId:find("property_") then return end
-    
-    local stash = inventory:GetInventory(payload.inventoryId, false)
-    
-    if stash.groups["groups_empty"] then
-        return true
+
+    local property = getPropertyById(payload.inventoryId:gsub("property_", ""))
+    if not property or not property.groups then return true end
+
+    local player = NDCore.getPlayer(payload.source)
+    for group, _ in pairs(player.groups) do
+        if lib.table.contains(property.groups, group) then
+            return true
+        end
     end
+    
+    return false
 end)
 
 RegisterNetEvent("ND_Property:registerStash", function(propertyId)
@@ -80,7 +80,7 @@ RegisterNetEvent("ND_Property:registerStash", function(propertyId)
         50, -- slots.
         100000, -- max weight.
         nil, -- nil makes shared, true makes unique.
-        reorderGroups(property.groups),
+        nil, -- anyone allowed.
         lockerCoords
     )
 end)
@@ -113,7 +113,7 @@ RegisterNetEvent("ND_Property:updatePropertySettings", function(propertyId, grou
         50, -- slots.
         100000, -- max weight.
         nil, -- nil makes shared, true makes unique.
-        reorderGroups(property.groups),
+        nil, -- anyone allowed.
         lockerCoords
     )
 end)
@@ -135,7 +135,7 @@ exports("givePropertyAccess", function(propertyId, groups, resetGroupsTime)
         50, -- slots.
         100000, -- max weight.
         nil, -- nil makes shared, true makes unique.
-        reorderGroups(property.groups),
+        nil, -- anyone allowed.
         lockerCoords
     )
 end)

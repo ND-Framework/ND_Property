@@ -68,7 +68,6 @@ RegisterCommand("property", function(source, args, rawCommand)
     })
 
     if not input2 then return end
-
     TriggerServerEvent("ND_Property:updatePropertySettings", input[1], stringToArray(input2[1]), input2[2] and input2[3] or nil)
 end, false)
 
