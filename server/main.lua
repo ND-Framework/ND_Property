@@ -39,7 +39,13 @@ SetTimeout(500, function()
 
     MySQL.query("SELECT `id`, `name` FROM `ox_doorlock`", {}, function(result)
         if not result then return end
-        doorList = result
+
+        for i=1, #result do
+            local door = result[i]
+            if door.name:find("property_") then
+                doorList[door.name] = door.id
+            end
+        end
     end)
 end)
 
@@ -74,6 +80,45 @@ local function updateStash(property)
     )
 end
 
+-- get poperty id from doorname.
+local function doorNameToPropertyId(str)
+    local firstUnderscore = str:find("_")
+    local lastUnderscore = str:find("_[^_]*$")
+
+    if firstUnderscore and lastUnderscore then
+        return str:sub(firstUnderscore+1, lastUnderscore-1)
+    elseif firstUnderscore then
+        return str:sub(firstUnderscore+1)
+    else
+        return str
+    end
+end
+
+-- reorder groups array to {[group] = rank}.
+local function reorderGroups(groups)
+    if not groups then return {} end
+
+    local newGroups = {}
+    for i=1, #groups do
+        newGroups[groups[i]] = 0
+    end
+
+    return newGroups
+end
+
+-- update ox_doorlock groups.
+local function updateDoors(property)
+    local doorlock = exports.ox_doorlock
+
+    for doorName, doorId in pairs(doorList) do
+        if doorNameToPropertyId(doorName) == property.id then
+            local door = doorlock:getDoor(doorId)
+            door.groups = reorderGroups(property.groups)
+            doorlock:editDoor(doorId, door)
+        end
+    end
+end
+
 -- update property data, will also update db.
 local function updateProperty(propertyId, groups, resetGroupsTime)
     local property = getPropertyById(propertyId)
@@ -81,9 +126,10 @@ local function updateProperty(propertyId, groups, resetGroupsTime)
 
     property.groups = groups
     property.resetGroupsTime = resetGroupsTime
-    updatePropertyDatabase(propertyId, groups, resetGroupsTime)
 
+    updatePropertyDatabase(propertyId, groups, resetGroupsTime)
     updateStash(property)
+    updateDoors(property)
 end
 
 -- check stash permission by property groups when opening.
