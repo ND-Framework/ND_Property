@@ -71,4 +71,21 @@ return {
         coords = vec3(1973.48, 3818.62, 33.44),
         locker = { model = `p_cs_locker_01_s`, coords = vec4(1969.531, 3814.030, 32.592, -147.996) }
     },
+    {
+        id = "bugershot",
+        label = "700 Prosperity St",
+        coords = vec3(-1195.5537, -895.6993, 13.8862)
+    },
+    {
+        id = "wiwangskybar",
+        label = "727 San Andreas Ave",
+        coords = vec3(-818.7205, -694.3865, 28.0601),
+        locker = { model = `prop_ld_int_safe_01`, coords = vec4(-820.733, -696.450, 26.872, 90.0) }
+    },
+    {
+        id = "cigarshop",
+        label = "573 Mirror Park Blvd",
+        coords = vec3(-818.7205, -694.3865, 28.0601),
+        locker = { model = `sf_prop_v_43_safe_s_bk_01a`, coords = vec4(1228.2629394531, -466.38000488281, 66.158996582031, -15.0) }
+    }
 }
