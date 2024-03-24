@@ -72,7 +72,7 @@ return {
         locker = { model = `p_cs_locker_01_s`, coords = vec4(1969.531, 3814.030, 32.592, -147.996) }
     },
     {
-        id = "bugershot",
+        id = "burgershot",
         label = "700 Prosperity St",
         coords = vec3(-1195.5537, -895.6993, 13.8862)
     },
